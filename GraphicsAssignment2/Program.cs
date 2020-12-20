@@ -6,7 +6,7 @@ namespace GraphicsAssignment1
     {
         static void Main(string[] args)
         {
-            using (Game game = new Game(1280, 720, "Rainbow Donut Party"))
+            using (Game game = new Game(1920, 1080, "Rainbow Donut Party"))
             {
                 game.Cursor = MouseCursor.Empty;
                 game.Run(60.0);

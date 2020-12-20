@@ -53,7 +53,7 @@ void main()
 								
     OutputColor = (fambientcolour + diffuse + specular);
 	
-	OutputColor.w = 0.15f;
+	OutputColor.w = 0.25f;
 	OutputColor = attenuation*mix(OutputColor, OutputColor * diffuse, fresnelR);
 	//OutputColor = OutputColor + emissive + global_ambient;
 }

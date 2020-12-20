@@ -63,7 +63,7 @@ namespace GraphicsAssignment1
             GL.BindVertexArray(VertexArrayObject);
 
             shader = new Shader("../../../shader.vert", "../../../shader.frag");
-            GL.ClearColor(0.2f, 0.2f, 0.2f, 0.0f); 
+            GL.ClearColor(0.4f, 0.5f, 0.4f, 0.0f); 
             //GL.Enable(EnableCap.ProgramPointSize);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
             GL.Enable(EnableCap.Blend);
@@ -245,10 +245,10 @@ namespace GraphicsAssignment1
             float changeInHorizontal = horizontalAngle - lastHorizontalAngle;
 
             Matrix4 XRotation;
-            Matrix4.CreateRotationY(horizontalAngle + MathF.PI, out XRotation); //rotating in clockwise direction around x-axis
+            Matrix4.CreateRotationY(-horizontalAngle + MathF.PI, out XRotation); //rotating in clockwise direction around x-axis
 
             Matrix4 YRotation;
-            Matrix4.CreateRotationX(-verticalAngle - 2*MathF.PI/5, out YRotation); //rotating in clockwise direction around x-axis
+            Matrix4.CreateRotationX(-verticalAngle - 1*MathF.PI/4, out YRotation); //rotating in clockwise direction around x-axis
 
             Matrix4 Rotation = Matrix4.Mult(XRotation, YRotation);
 
@@ -256,14 +256,11 @@ namespace GraphicsAssignment1
             //view = Matrix4.Mult(ScaleMatrix, view);
 
 
-            if (false)
-            {
-                view = Matrix4.CreateTranslation(-new Vector3(eye));
-            }
-            else
-            {
-                view = Matrix4.LookAt(new Vector3(eye), new Vector3(target), new Vector3(0f, 1f, 0f));
-            }
+
+            //view = Matrix4.CreateTranslation(-new Vector3(eye));
+
+            view = Matrix4.LookAt(new Vector3(eye), new Vector3(target), new Vector3(0f, 1f, 0f));
+
             //if (IsKeyDown(Key.Space))
             //{
             //    view = Matrix4.LookAt(new Vector3(eye), new Vector3(target), new Vector3(0f, 1f, 0f));
