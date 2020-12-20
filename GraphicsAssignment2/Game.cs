@@ -60,13 +60,12 @@ namespace GraphicsAssignment1
             GL.BindVertexArray(VertexArrayObject);
 
             shader = new Shader("../../../shader.vert", "../../../shader.frag");
-            GL.ClearColor(0.2f, 0.3f, 0.3f, 0.0f);
+            GL.ClearColor(0.6f, 0.6f, 0.6f, 0.0f);
             //GL.Enable(EnableCap.ProgramPointSize);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
             GL.Enable(EnableCap.Blend);
-            GL.Enable(EnableCap.DepthTest);
+            //GL.Enable(EnableCap.DepthTest);
             
-
             lastScroll = Mouse.GetState().WheelPrecise;
 
             /* Define uniforms to send to vertex shader */  
@@ -172,15 +171,15 @@ namespace GraphicsAssignment1
             // these controls can also be done with scroll wheel; scaling the view
             if (IsKeyDown(Key.Up))
             {
-                scaleModifier.X -= 0.02f;
-                scaleModifier.Y -= 0.02f;
-                scaleModifier.Z -= 0.02f;
+                scaleModifier.X -= 0.2f;
+                scaleModifier.Y -= 0.2f;
+                scaleModifier.Z -= 0.2f;
             }
             if (IsKeyDown(Key.Down))
             {
-                scaleModifier.X += 0.02f;
-                scaleModifier.Y += 0.02f;
-                scaleModifier.Z += 0.02f;
+                scaleModifier.X += 0.2f;
+                scaleModifier.Y += 0.2f;
+                scaleModifier.Z += 0.2f;
             }
             
             // get scroll wheel info and use it to transform
@@ -214,26 +213,43 @@ namespace GraphicsAssignment1
             };
 
             // get mouse info and use it to rotate
-            MouseState cursorState = Mouse.GetCursorState();
-            horizontalAngle -= 0.005f * (Width / 2 - cursorState.X);
-            verticalAngle += 0.005f * (Height / 2 - cursorState.Y);
-            Mouse.SetPosition(Width / 2, Height / 2);
+            //MouseState cursorState = Mouse.GetCursorState();
+            //horizontalAngle -= 0.005f * (Width / 2 - cursorState.X);
+            //verticalAngle += 0.005f * (Height / 2 - cursorState.Y);
+            //Mouse.SetPosition(Width / 2, Height / 2);
 
-            view = Matrix4.LookAt(new Vector3(5f, 0f, 0f), new Vector3(0f, 0f, 0f), new Vector3(0f, 1f, 0f));
 
-            Matrix4 ScaleMatrix = Matrix4.CreateScale(viewModSigmoid);
+            Vector4 eye = new Vector4(0, 0, 0, 1);
 
-            Matrix4 ZRotation;
-            Matrix4.CreateRotationX(horizontalAngle, out ZRotation); //rotating in clockwise direction around x-axis
+            Vector4 target = new Vector4(0, 0, 0, 1);
 
-            Matrix4 YRotation;
-            Matrix4.CreateRotationZ(verticalAngle, out YRotation); //rotating in clockwise direction around x-axis
 
-            Matrix4 Rotation = Matrix4.Mult(ZRotation, YRotation);
+            eye.X += pipeQueue.ElementAt(0).torusRadius;
 
-            // apply transformations to camera
-            view = Matrix4.Mult(Rotation, view);
-            view = Matrix4.Mult(ScaleMatrix, view);
+            if (pipeQueue.Count > 1)
+            {
+                target = new Vector4(pipeQueue.ElementAt(1).torusRadius, 0, 0, 1);
+
+                target *= pipeQueue.ElementAt(1).pipeMatrix;
+            }
+
+            eye *= pipeQueue.ElementAt(0).pipeMatrix;
+
+            view = Matrix4.LookAt(new Vector3(eye), new Vector3(target), new Vector3(0f, 1f, 0f));
+
+            //Matrix4 ScaleMatrix = Matrix4.CreateScale(viewModSigmoid);
+
+            //Matrix4 ZRotation;
+            //Matrix4.CreateRotationX(horizontalAngle, out ZRotation); //rotating in clockwise direction around x-axis
+
+            //Matrix4 YRotation;
+            //Matrix4.CreateRotationZ(verticalAngle, out YRotation); //rotating in clockwise direction around x-axis
+
+            //Matrix4 Rotation = Matrix4.Mult(ZRotation, YRotation);
+
+            //// apply transformations to camera
+            //view = Matrix4.Mult(Rotation, view);
+            //view = Matrix4.Mult(ScaleMatrix, view);
 
             // send these uniforms to the shader
             GL.UniformMatrix4(viewID, false, ref view);
@@ -244,7 +260,9 @@ namespace GraphicsAssignment1
 
         void AttachNewPipe(Pipe originalPipe, ref Pipe newPipe)
         {
-            Matrix4 pipeRoll = Matrix4.CreateRotationY(newPipe.pipeRollRadians);
+            // Mathf.RoundToInt(Random.Range((pipeSegments - 1) / 2, (pipeSegments - 1))) * (360f / (pipeSegments - 1))
+
+            Matrix4 pipeRoll = Matrix4.CreateRotationY(MathF.Floor(newPipe.pipeRollRadians / 2 * MathF.PI * (newPipe.pipeSegments-1)) * 2 * MathF.PI / (newPipe.pipeSegments-1));
 
             Matrix4 translationInOGPipeSpace = Matrix4.CreateTranslation(new Vector3(newPipe.torusRadius, 0f, 0f)) * originalPipe.pipeMatrix;
 
@@ -259,26 +277,43 @@ namespace GraphicsAssignment1
 
         void SetModelMatrix()
         {
-            Pipe.PipeParams newPipeParams = new Pipe.PipeParams { pipeSegments = 50, pipeRadius = 20f, torusSegments = 15, torusRadius = 40, subPipePercentage = 0.4f };
+            Pipe.PipeParams newPipeParams = new Pipe.PipeParams { pipeSegments = 100, pipeRadius = 3f, torusSegments = 150, torusRadius = 12, subPipePercentage = 1/10f };
             Pipe firstPipe = new Pipe() { pipeMatrix = Matrix4.Identity };
 
             //pipeQueue.Enqueue(new Pipe() { pipeMatrix = Matrix4.Identity });
+
+            // fill queue
+
+            if (pipeQueue.Count < 300)
+            {
+
+                for (int i = 0; i < 300; i++)
+                {
+                    RandomNumberGenerator.Create().GetNonZeroBytes(randomBytes);
+                    Pipe newPipe = new Pipe(newPipeParams, randomBytes[0], true);
+                    pipeQueue.Enqueue(newPipe);
+                    AttachNewPipe(currentPipe, ref newPipe);
+
+                    currentPipe = newPipe;
+                }
+            }
+
 
             if (IsKeyDown(Key.Space))
             {
                 RandomNumberGenerator.Create().GetNonZeroBytes(randomBytes);
 
                 // queue size
-                if (pipeQueue.Count > 5)
+                if (pipeQueue.Count >= 300)
                 {
                     pipeQueue.Dequeue();
                 }
 
-                Pipe newPipe = new Pipe(newPipeParams, randomBytes[0] / MathF.E, false);
-                pipeQueue.Enqueue(newPipe);
-                AttachNewPipe(currentPipe, ref newPipe);
+                Pipe newPipe1 = new Pipe(newPipeParams, randomBytes[0], true);
+                pipeQueue.Enqueue(newPipe1);
+                AttachNewPipe(currentPipe, ref newPipe1);
 
-                currentPipe = newPipe;
+                currentPipe = newPipe1;
             }
 
             // draw all pipes
@@ -298,7 +333,6 @@ namespace GraphicsAssignment1
         }
     }
 }
-
 
 
 //angle_x_inc = 0.01f;

@@ -15,6 +15,7 @@ namespace GraphicsAssignment1
         public float torusRadius;
         public float subPipePercentage;
         public float pipeRollRadians;
+        public int pipeSegments;
 
         private const int VertexBufferLocation = 0;
         private const int VertexColourLocation = 1;
@@ -45,6 +46,7 @@ namespace GraphicsAssignment1
             this.torusRadius = torusRadius;
             this.subPipePercentage = subPipePercentage;
             this.pipeRollRadians = pipeRollRadians;
+            this.pipeSegments = pipeSegments;
             CreatePipe(pipeSegments, pipeRadius, torusSegments, torusRadius, subPipePercentage, invertNormals);
 
             CreateBuffersFromModelData();
@@ -55,6 +57,7 @@ namespace GraphicsAssignment1
             this.torusRadius = pipeParams.torusRadius;
             this.subPipePercentage = pipeParams.subPipePercentage;
             this.pipeRollRadians = pipeRollRadians;
+            this.pipeSegments = pipeParams.pipeSegments;
 
             CreatePipe(pipeParams.pipeSegments, pipeParams.pipeRadius, pipeParams.torusSegments, pipeParams.torusRadius, pipeParams.subPipePercentage, invertNormals);
             CreateBuffersFromModelData();
@@ -66,6 +69,7 @@ namespace GraphicsAssignment1
             this.torusRadius = 0f;
             this.subPipePercentage = 0f;
             this.pipeRollRadians = 0f;
+            this.pipeSegments = 0;
         }
 
 

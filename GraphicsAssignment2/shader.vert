@@ -7,6 +7,7 @@ out vec3 fnormal;
 out vec3 fposition;
 out vec4 fdiffusecolour;
 out float fintensity;
+out mat4 fview;
 
 uniform mat4 model;
 uniform mat4 projection;
@@ -20,8 +21,10 @@ float rand(float n){return sin(n + 234.34323434);}
 void main()
 {
     vec4 position_h = vec4(position, 1.0);
-    fdiffusecolour = vec4(0.2, 0, 0, 1);
+    fdiffusecolour = vec4(0, 0, 0.2, 1);
     fintensity = intensity;
+
+    fview = view;
 
 	mat4 mv_matrix = view * model;
 	mat3 n_matrix = transpose(inverse(mat3(mv_matrix)));
