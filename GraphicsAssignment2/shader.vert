@@ -21,7 +21,7 @@ float rand(float n){return sin(n + 234.34323434);}
 void main()
 {
     vec4 position_h = vec4(position, 1.0);
-    fdiffusecolour = vec4(0, 0, 0.2, 1);
+    fdiffusecolour = vec4(0.05, 0, 0.05, 1);
     fintensity = intensity;
 
     fview = view;
