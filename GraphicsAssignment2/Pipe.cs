@@ -12,33 +12,63 @@ namespace GraphicsAssignment1
     class Pipe
     {
         public Matrix4 pipeMatrix;
-        public int pipeSegments;
-        public float pipeRadius;
-        public int torusSegments;
         public float torusRadius;
         public float subPipePercentage;
+        public float pipeRollRadians;
 
         private const int VertexBufferLocation = 0;
         private const int VertexColourLocation = 1;
         private const int VertexNormalLocation = 2;
 
-        public float[] Vertices;
-        public int[] Triangles;
-        public float[] Normals;
-        public float[] Colours;
+        private float[] Vertices;
+        private int[] Triangles;
+        private float[] Normals;
+        private float[] Colours;
 
         private int VertexBufferObject;
         private int VertexColourObject;
         private int NormalsBufferObject;
         private int TriangleBufferObject;
 
-        // Runs the initial code to create a torus, but not draw it yet
-        public Pipe(int pipeSegments, float pipeRadius, int torusSegments, float torusRadius, float subPipePercentage, bool invertNormals)
+        public struct PipeParams
         {
+            public int pipeSegments;
+            public float pipeRadius;
+            public int torusSegments;
+            public float torusRadius;
+            public float subPipePercentage;
+        }
+
+        // Runs the initial code to create a torus, but not draw it yet
+        public Pipe(int pipeSegments, float pipeRadius, int torusSegments, float torusRadius, float subPipePercentage, float pipeRollRadians, bool invertNormals)
+        {
+            this.torusRadius = torusRadius;
+            this.subPipePercentage = subPipePercentage;
+            this.pipeRollRadians = pipeRollRadians;
             CreatePipe(pipeSegments, pipeRadius, torusSegments, torusRadius, subPipePercentage, invertNormals);
+
             CreateBuffersFromModelData();
         }
-        
+
+        public Pipe(PipeParams pipeParams, float pipeRollRadians, bool invertNormals)
+        {
+            this.torusRadius = pipeParams.torusRadius;
+            this.subPipePercentage = pipeParams.subPipePercentage;
+            this.pipeRollRadians = pipeRollRadians;
+
+            CreatePipe(pipeParams.pipeSegments, pipeParams.pipeRadius, pipeParams.torusSegments, pipeParams.torusRadius, pipeParams.subPipePercentage, invertNormals);
+            CreateBuffersFromModelData();
+        }
+
+        // for creating an empty initial pipe to attach to 
+        public Pipe()
+        {
+            this.torusRadius = 0f;
+            this.subPipePercentage = 0f;
+            this.pipeRollRadians = 0f;
+        }
+
+
         // Used to get a point on a torus with some given u/v values (u = angle along the torus, v = angle along pipe)
         public static Vector3 GetPointOnTorus(float u, float v, float torusRadius, float pipeRadius)
         {

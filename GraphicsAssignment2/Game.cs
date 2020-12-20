@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
+using System.Linq;
 using System.Security.Cryptography;
 
 namespace GraphicsAssignment1
@@ -31,7 +32,11 @@ namespace GraphicsAssignment1
         byte[] randomBytes;
 
         // Queue of pipes
-        Queue<PipeData> pipeQueue;
+        Queue<Pipe> pipeQueue;
+
+
+        KeyboardState keyboardState, lastKeyboardState;
+
 
         public Game(int width, int height, string title) :
             base(width, height, GraphicsMode.Default, title)
@@ -42,12 +47,13 @@ namespace GraphicsAssignment1
             intensity = 1f;
             timeElapsed = 0f;
             scaleModifier = new Vector3(1f, 1f, 1f);
-            randomBytes = new byte[64];
-            pipeQueue = new Queue<PipeData>();
+            randomBytes = new byte[1];
+            pipeQueue = new Queue<Pipe>();
 
-            RandomNumberGenerator.Create().GetNonZeroBytes(randomBytes);
+
         }
 
+        Pipe currentPipe;
         protected override void OnLoad(EventArgs e)
         {
             VertexArrayObject = GL.GenVertexArray();
@@ -66,15 +72,21 @@ namespace GraphicsAssignment1
             /* Define uniforms to send to vertex shader */  
             scaleModifier = new Vector3(-1f, -1f, -1f);
 
+            Pipe initPipe = new Pipe() { pipeMatrix = Matrix4.Identity };
+
+            pipeQueue.Enqueue(initPipe);
+
+            currentPipe = initPipe;
+
             base.OnLoad(e);
         }
 
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
+            // Get current state
+            keyboardState = Keyboard.GetState();
 
-            KeyboardState input = Keyboard.GetState();
-
-            if (input.IsKeyDown(Key.Escape))
+            if (IsKeyDown(Key.Escape))
             {
                 Exit();
             }
@@ -102,6 +114,8 @@ namespace GraphicsAssignment1
             SetProjectionMatrix(90f);
             SetViewMatrix();
 
+            lastKeyboardState = keyboardState;
+
             Context.SwapBuffers();
 
             base.OnRenderFrame(e);
@@ -121,6 +135,10 @@ namespace GraphicsAssignment1
             base.OnUnload(e);
         }
 
+        public bool IsKeyDown(Key key)
+        {
+            return (keyboardState[key] && (keyboardState[key] != lastKeyboardState[key]));
+        }
 
         void SetProjectionMatrix(float fov)
         {
@@ -133,35 +151,32 @@ namespace GraphicsAssignment1
 
         void SetViewMatrix()
         {
-            //Get the state of the keyboard this frame
-            KeyboardState input = Keyboard.GetState();
-
 
             /* Controls for changing light intensity*/
-            if (input.IsKeyDown(Key.F1)) intensity = 0.5f;
-            if (input.IsKeyDown(Key.F2)) intensity = 1.0f;
-            if (input.IsKeyDown(Key.F3)) intensity = 1.5f;
-            if (input.IsKeyDown(Key.F4)) intensity = 2.0f;
-            if (input.IsKeyDown(Key.F5)) intensity = 2.5f;
+            if (IsKeyDown(Key.F1)) intensity = 0.5f;
+            if (IsKeyDown(Key.F2)) intensity = 1.0f;
+            if (IsKeyDown(Key.F3)) intensity = 1.5f;
+            if (IsKeyDown(Key.F4)) intensity = 2.0f;
+            if (IsKeyDown(Key.F5)) intensity = 2.5f;
 
             /* Controls for changing partymode intensity*/
-            if (input.IsKeyDown(Key.Q)) partyMode = 1;
-            if (input.IsKeyDown(Key.W)) partyMode = 2;
-            if (input.IsKeyDown(Key.E)) partyMode = 3;
-            if (input.IsKeyDown(Key.R)) partyMode = 4;
+            if (IsKeyDown(Key.Q)) partyMode = 1;
+            if (IsKeyDown(Key.W)) partyMode = 2;
+            if (IsKeyDown(Key.E)) partyMode = 3;
+            if (IsKeyDown(Key.R)) partyMode = 4;
 
             /* Controls for changing from wireframe to fill and back */
-            if (input.IsKeyDown(Key.Number1)) drawMode = 1;
-            if (input.IsKeyDown(Key.Number2)) drawMode = 2;
+            if (IsKeyDown(Key.Number1)) drawMode = 1;
+            if (IsKeyDown(Key.Number2)) drawMode = 2;
 
             // these controls can also be done with scroll wheel; scaling the view
-            if (input.IsKeyDown(Key.Up))
+            if (IsKeyDown(Key.Up))
             {
                 scaleModifier.X -= 0.02f;
                 scaleModifier.Y -= 0.02f;
                 scaleModifier.Z -= 0.02f;
             }
-            if (input.IsKeyDown(Key.Down))
+            if (IsKeyDown(Key.Down))
             {
                 scaleModifier.X += 0.02f;
                 scaleModifier.Y += 0.02f;
@@ -226,18 +241,10 @@ namespace GraphicsAssignment1
             GL.Uniform1(partyModeID, partyMode);
         }
 
-        struct PipeParams
-        {
-            public int pipeSegments;
-            public float pipeRadius;
-            public int torusSegments;
-            public float torusRadius;
-            public float subPipePercentage;
-        }
 
-        Pipe AttachNewPipe(Pipe originalPipe, Pipe newPipe, float pipeRollRadians)
+        void AttachNewPipe(Pipe originalPipe, ref Pipe newPipe)
         {
-            Matrix4 pipeRoll = Matrix4.CreateRotationY(pipeRollRadians);
+            Matrix4 pipeRoll = Matrix4.CreateRotationY(newPipe.pipeRollRadians);
 
             Matrix4 translationInOGPipeSpace = Matrix4.CreateTranslation(new Vector3(newPipe.torusRadius, 0f, 0f)) * originalPipe.pipeMatrix;
 
@@ -247,41 +254,48 @@ namespace GraphicsAssignment1
 
             Matrix4 modelMatrix = torusRotation * translationInNewPipeSpace * pipeRoll * translationInOGPipeSpace;
 
-            GL.UniformMatrix4(modelID, false, ref modelMatrix);
-            donut.DrawPipe(drawMode);
-
-            return newPipe;
+            newPipe.pipeMatrix = modelMatrix;
         }
-
 
         void SetModelMatrix()
         {
-            KeyboardState input = Keyboard.GetState();
-            if (input.IsKeyDown(Key.Space))
-            {
+            Pipe.PipeParams newPipeParams = new Pipe.PipeParams { pipeSegments = 50, pipeRadius = 20f, torusSegments = 15, torusRadius = 40, subPipePercentage = 0.4f };
+            Pipe firstPipe = new Pipe() { pipeMatrix = Matrix4.Identity };
 
+            //pipeQueue.Enqueue(new Pipe() { pipeMatrix = Matrix4.Identity });
+
+            if (IsKeyDown(Key.Space))
+            {
+                RandomNumberGenerator.Create().GetNonZeroBytes(randomBytes);
+
+                // queue size
+                if (pipeQueue.Count > 5)
+                {
+                    pipeQueue.Dequeue();
+                }
+
+                Pipe newPipe = new Pipe(newPipeParams, randomBytes[0] / MathF.E, false);
+                pipeQueue.Enqueue(newPipe);
+                AttachNewPipe(currentPipe, ref newPipe);
+
+                currentPipe = newPipe;
             }
 
-            if (pipeQueue.Count != 0)
+            // draw all pipes
+            if (pipeQueue.Count > 0)
             {
-
-                PipeParams newPipeParams = new PipeParams { pipeSegments = 50, pipeRadius = 2f, torusSegments = 15, torusRadius = 5, subPipePercentage = 0.4f };
-
-                PipeData currentPipe = new PipeData { pipeMatrix = Matrix4.Identity, subPipePercentage = 0.0f };
-
-
-                Pipe pipe = new Pipe(newPipeParams.pipeSegments, newPipeParams.pipeRadius, newPipe.torusSegments, newPipeParams.torusRadius, newPipeParams.subPipePercentage, false);
-
+                Pipe pipeToDraw;
 
                 for (int i = 0; i < pipeQueue.Count; i++)
                 {
-                    currentPipe = AttachNewPipe(currentPipe, newPipeParams, randomBytes[i] / MathF.E);
+                    pipeToDraw = pipeQueue.ElementAt(i);
+
+                    // checking it is not the empty init pipe
+                    GL.UniformMatrix4(modelID, false, ref pipeToDraw.pipeMatrix);
+                    if (pipeToDraw.subPipePercentage != 0.0f) pipeToDraw.DrawPipe(drawMode);
                 }
             }
-
-
         }
-
     }
 }
 
