@@ -3,7 +3,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace GraphicsAssignment1
+namespace GraphicsAssignment2
 {
     public class Shader
     {

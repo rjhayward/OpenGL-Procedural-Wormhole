@@ -1,15 +1,15 @@
 ﻿using OpenTK;
 
-namespace GraphicsAssignment1
+namespace GraphicsAssignment2
 {
     class Program
     {
         static void Main(string[] args)
         {
-            using (Game game = new Game(1920, 1080, "Rainbow Donut Party"))
+            using (Game game = new Game(1600, 900, "Space Wormhole Simulator"))
             {
                 game.Cursor = MouseCursor.Empty;
-                game.Run(60.0);
+                game.Run(60.0, 60.0);
             }
         }
     }

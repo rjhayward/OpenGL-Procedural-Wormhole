@@ -16,8 +16,6 @@ uniform float intensity;
 uniform float timeElapsed;
 uniform int partyMode;
 
-float rand(float n){return sin(n + 234.34323434);}
-
 void main()
 {
     vec4 position_h = vec4(position, 1.0);
@@ -32,30 +30,8 @@ void main()
     fposition = (mv_matrix * position_h).xyz;
     fnormal = normalize(n_matrix * normal);
 
-    
     vec3 position_nh = position_h.xyz;
-    if (partyMode != 1)
-    {
-        if (partyMode == 2)
-        {
-            float moveAmount = 0.4f * sin(timeElapsed/2) * rand(gl_VertexID);
-            position_nh += moveAmount*normalize(-position_nh);
-
-        }
-        if (partyMode == 3)
-        {
-            float moveAmount = 1f * sin(timeElapsed/2) * rand(gl_VertexID);
-            position_nh += moveAmount*normalize(-position_nh);
-
-        }
-        if (partyMode == 4)
-        {
-            float moveAmount = 2f * sin(timeElapsed/2) * rand(gl_VertexID);
-            position_nh += moveAmount*normalize(-position_nh);
-
-        }
-    }
-
+    
     position_h = vec4(position_nh, 1.0);
 
     gl_Position = projection * view * model * position_h;

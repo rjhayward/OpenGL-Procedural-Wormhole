@@ -9,18 +9,20 @@ using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Security.Cryptography;
 
-namespace GraphicsAssignment1
+namespace GraphicsAssignment2
 {
     class Game : GameWindow
     {
         Shader shader;
+        Shader skyboxShader;
+        Skybox skybox;
         int shaderProgram;
         int VertexArrayObject;
 
         public Stack<Matrix4> model;
         Matrix4 view;
 
-        int modelID, projectionID, viewID, intensityID, timeElapsedID, partyModeID;
+        int modelID, projectionID, viewID, intensityID, timeElapsedID, partyModeID, skyboxID;
 
         int drawMode, partyMode;
 
@@ -37,9 +39,14 @@ namespace GraphicsAssignment1
 
         KeyboardState keyboardState, lastKeyboardState;
 
-
+        public static GraphicsMode gfxMode = new GraphicsMode(new ColorFormat(8, 8, 8, 0),
+              24, // Depth bits
+              8,  // Stencil bits
+              4   // FSAA samples for anti-aliasing
+            );
+        
         public Game(int width, int height, string title) :
-            base(width, height, GraphicsMode.Default, title)
+            base(width, height, gfxMode, title)
         {
             model = new Stack<Matrix4>();
             drawMode = 1;
@@ -63,11 +70,14 @@ namespace GraphicsAssignment1
             GL.BindVertexArray(VertexArrayObject);
 
             shader = new Shader("../../../shader.vert", "../../../shader.frag");
+            skyboxShader = new Shader("../../../skyboxShader.vert", "../../../skyboxShader.frag");
+            skybox = new Skybox();
+
             GL.ClearColor(0.4f, 0.5f, 0.4f, 0.0f); 
             //GL.Enable(EnableCap.ProgramPointSize);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
             GL.Enable(EnableCap.Blend);
-            GL.DepthMask(true);
+            
             //GL.Enable(EnableCap.DepthTest);
 
             lastScroll = Mouse.GetState().WheelPrecise;
@@ -104,7 +114,10 @@ namespace GraphicsAssignment1
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            
 
+
+            GL.DepthMask(true);
             shaderProgram = shader.Use();
             modelID = GL.GetUniformLocation(shaderProgram, "model");
             projectionID = GL.GetUniformLocation(shaderProgram, "projection");
@@ -117,12 +130,34 @@ namespace GraphicsAssignment1
             SetProjectionMatrix(90f);
             SetViewMatrix();
 
+            GL.DepthMask(false);
+            GL.DepthFunc(DepthFunction.Lequal);
+
+            shaderProgram = skyboxShader.Use();
+            //skyboxID = GL.GetUniformLocation(shaderProgram, "skybox");
+            //GL.Uniform1(skyboxID, 0);
+
+            projectionID = GL.GetUniformLocation(shaderProgram, "projection");
+            viewID = GL.GetUniformLocation(shaderProgram, "view");
+
+            SetProjectionMatrix(90f);
+
+            view = new Matrix4(new Matrix3(view)); // remove translation from view matrix for skybox
+
+            GL.UniformMatrix4(viewID, false, ref view);
+
+            skybox.Draw();
+
+            GL.DepthFunc(DepthFunction.Less);
+
+
             lastKeyboardState = keyboardState;
 
             Context.SwapBuffers();
 
             base.OnRenderFrame(e);
         }
+
 
         protected override void OnResize(EventArgs e)
         {

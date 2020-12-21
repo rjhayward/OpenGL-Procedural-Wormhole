@@ -30,7 +30,7 @@ void main()
 	vec3 I = normalize(fposition - lightpos);
 	vec3 N = normalize(fnormal);
 	
-	float fresnelbias = 0.2f;
+	float fresnelbias = 0.0f;
 	float fresnelscale = 0.7f;
 	float fresnelpower = 0.9f;
 

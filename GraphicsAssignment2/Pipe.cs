@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Drawing.Drawing2D;
 using System.Runtime.CompilerServices;
 
-namespace GraphicsAssignment1
+namespace GraphicsAssignment2
 {
     class Pipe
     {
