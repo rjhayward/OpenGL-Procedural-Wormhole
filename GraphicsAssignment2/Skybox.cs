@@ -14,8 +14,8 @@ namespace GraphicsAssignment2
 
         private const int VertexBufferLocation = 0;
 
-        //
-        string[] faces =
+        //paths for the skybox's faces
+        readonly string[] faces =
         {
             "../../../GreenSkybox_right.png",
             "../../../GreenSkybox_left.png",
@@ -24,8 +24,7 @@ namespace GraphicsAssignment2
             "../../../GreenSkybox_back.png",
             "../../../GreenSkybox_front.png"
         };
-
-        float[] Vertices =
+        readonly float[] Vertices =
         {
             -1.0f,  1.0f, -1.0f,
             -1.0f, -1.0f, -1.0f,
@@ -75,17 +74,15 @@ namespace GraphicsAssignment2
             textureID = Load(faces);
 
             CreateBuffersFromModelData();
+
         }
 
-        //load skybox (image sharp)
+        //load skybox (ImageSharp)
         int Load(string[] faces)
         {
-            int textureID;
-            GL.GenTextures(1, out textureID);
+            GL.GenTextures(1, out int textureID);
             GL.BindTexture(TextureTarget.TextureCubeMap, textureID);
 
-            //int width, height, nrChannels;
-            System.Console.Out.WriteLine("loading cubemap");
             for (int i = 0; i < faces.Length; i++)
             {
                 Image<Rgba32> image = Image.Load<Rgba32>(faces[i]);
@@ -103,8 +100,8 @@ namespace GraphicsAssignment2
                     }
                 }
 
+                //turn into RGBA byte array for OpenGL
                 List<byte> pixels = new List<byte>();
-
                 foreach (Rgba32 p in tempPixels)
                 {
                     pixels.Add(p.R);
@@ -115,33 +112,15 @@ namespace GraphicsAssignment2
 
                 if (pixels.Count > 0)
                 {
-                    System.Console.Out.WriteLine(pixels.Count / 4096);
+                    System.Console.Out.WriteLine("Loading skybox...");
 
                     GL.TexImage2D(TextureTarget.TextureCubeMapPositiveX + i, 0, PixelInternalFormat.Rgba, image.Width, image.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, pixels.ToArray());
 
-                    System.Console.Out.WriteLine("loaded cubemap");
                 }
                 else
                 {
                     System.Console.Out.WriteLine("error loading cubemap");
                 }
-
-
-
-                ////Get an array of the pixels, in ImageSharp's internal format.
-                //using (var memoryStream = new MemoryStream())
-                //{
-                //    var imageEncoder = image.GetConfiguration().ImageFormatsManager.FindEncoder(PngFormat.Instance);
-                //    image.Save(memoryStream, imageEncoder);
-                //    byte[] pixels = memoryStream.ToArray();
-
-
-
-                //GL.PixelStore(PixelStoreParameter.UnpackAlignment, 1);
-
-
-
-
             }
 
             GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMagFilter, (int)All.Linear);
@@ -185,12 +164,6 @@ namespace GraphicsAssignment2
             GL.EnableVertexAttribArray(VertexBufferLocation);
             GL.VertexAttribPointer(VertexBufferLocation, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
             GL.BindVertexArray(0);
-
-            /////* Bind pipe vertices. */
-            //GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferObject);
-            //GL.EnableVertexAttribArray(VertexBufferLocation);
-            //GL.VertexAttribPointer(VertexBufferLocation, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-
         }
     }
 }

@@ -1,4 +1,4 @@
-This is the Space Wormhole Simulator.
+This is the Space Wormhole Simulator (Background music produced by Ryan Hayward).
 
 Use the mouse to look around the wormhole that you are travelling through, or let go of the mouse and enjoy the ride!
 

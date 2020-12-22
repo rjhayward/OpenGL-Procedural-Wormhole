@@ -14,7 +14,6 @@ uniform mat4 projection;
 uniform mat4 view;
 uniform float intensity;
 uniform float timeElapsed;
-uniform int partyMode;
 
 void main()
 {

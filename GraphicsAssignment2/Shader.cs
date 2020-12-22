@@ -66,8 +66,6 @@ namespace GraphicsAssignment2
             GL.DeleteShader(VertexShader);
         }
 
-
-
         private bool disposedValue = false;
 
         protected virtual void Dispose(bool disposing)

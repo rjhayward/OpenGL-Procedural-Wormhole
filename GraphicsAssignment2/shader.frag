@@ -24,18 +24,24 @@ void main()
 	vec4 fambientcolour = fdiffusecolour * 0.3f;
 	vec4 fspecularcolour =  specular_colour * fintensity;
 	float distancetolight = length(lightpos-fposition);
-
-	// Normalise interpolated vectors
+	
+	// Normalise interpolated vectors for our shading functions to use
 	vec3 L = normalize(lightpos - fposition);
 	vec3 I = normalize(fposition - lightpos);
 	vec3 N = normalize(fnormal);
 	
-	float fresnelbias = 0.0f;
-	float fresnelscale = 0.7f;
-	float fresnelpower = 0.9f;
 
-	float fresnelR = fresnelbias + fresnelscale * pow(1.0 + dot(I, N), fresnelpower);
-	
+	// Fresnel Shading
+	float fresnelR;
+	{
+		// set params for fresnel function
+		float fresnelbias = 0.0f;
+		float fresnelscale = 0.7f;
+		float fresnelpower = 0.9f;
+
+		fresnelR = fresnelbias + fresnelscale * pow(1.0 + dot(I, N), fresnelpower);
+	}
+
 	// diffuse component
 	vec4 diffuse = max(dot(N, L), 0.0) * fdiffusecolour * fintensity;
 
@@ -54,6 +60,8 @@ void main()
     OutputColor = (fambientcolour + diffuse + specular);
 	
 	OutputColor.w = 0.25f;
+
+	// linear interpolation using fresnel value
 	OutputColor = attenuation*mix(OutputColor, OutputColor * diffuse, fresnelR);
-	//OutputColor = OutputColor + emissive + global_ambient;
+	//OutputColor = OutputColor + emissive + global_ambient; // uncomment to add emission and global ambience
 }
