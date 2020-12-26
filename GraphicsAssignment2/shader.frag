@@ -51,7 +51,7 @@ void main()
 	vec4 specular = pow(max(dot(R, V), 0.0), shininess) * fspecularcolour;
 
 	// attentuation constants
-	float attenuation_k1 = 50f;
+	float attenuation_k1 = 50.0f;
 	float attenuation_k2 = 0.001f;
 	float attenuation_k3 = 0.001f;
 	float attenuation = 150.0f / (attenuation_k1 + attenuation_k2*distancetolight + 
